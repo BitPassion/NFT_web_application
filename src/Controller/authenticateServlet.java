@@ -54,7 +54,7 @@ public class authenticateServlet extends HttpServlet {
                     return;
                 }
 
-                // If username is valid then set a token for password reset
+                // Show a success message
                 if (usrResponse != null) {
                     Token tknResponse = userService.createPasswordResetTokenForUser(req.getParameter("username"));
 
@@ -73,8 +73,16 @@ public class authenticateServlet extends HttpServlet {
                         resp.sendRedirect(req.getContextPath() + "/account/login.jsp?succresttpwd=1");
                 }
             }
+            // Handle signing up new user
+            else if (urls[0].equals("signup")) {
+                if(userService.registerUser(req.getParameter("fName"), req.getParameter("lName"), req.getParameter("email"), req.getParameter("username"), req.getParameter("password"))) {
+                    resp.sendRedirect(req.getContextPath() + "/account/signup.jsp?succsignup=1");
+                    return;
+                }
+                // Redirect back to signup page if signup failed
+                resp.sendRedirect(req.getContextPath() + "/account/signup.jsp?errmsg=1");
+            }
         }
-
     }
 
     @Override

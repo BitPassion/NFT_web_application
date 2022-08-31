@@ -8,8 +8,6 @@ import Data.dao.impl.userContext;
 import Domain.Token;
 import Domain.User;
 
-import java.util.List;
-
 import static Utils.DateUtils.generateUnixTimestamp;
 import static Utils.TokenUtils.generatePasswordResetToken;
 
@@ -41,10 +39,6 @@ public class UserService {
         }
 
         return null;
-    }
-
-    public List<User> getAllUsers(){
-        return (List<User>) userRepo.findAll();
     }
 
     public User findUserByUsername(String username) {
@@ -122,6 +116,32 @@ public class UserService {
 
                 if (expirationDate > currentUnixTime) return true;
             }
+        }
+
+        return false;
+    }
+
+    public boolean registerUser(String fName, String lName, String email, String username, String password){
+        // Sanitize input before pass it for db
+        fName = fName.trim();
+        lName = lName.trim();
+        email = email.trim();
+        username = username.trim();
+        password = password.trim();
+
+        // Make sure the input is proper
+        if (!fName.isBlank() && !lName.isBlank() && !email.isBlank() && !username.isBlank() && !password.isBlank()) {
+            // If user already exists, don't attempt to save new user
+            if (findUserByUsername(username) != null) return false;
+
+            // Create and save new user
+            User usr = new User();
+            usr.setfName(fName);
+            usr.setlName(lName);
+            usr.setEmail(email);
+            usr.setUsername(username);
+            usr.setPassword(password);
+            if (userRepo.save(usr) != null) return true;
         }
 
         return false;
