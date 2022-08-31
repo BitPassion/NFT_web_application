@@ -8,7 +8,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class userContext extends abstractConnect implements userDao {
 
@@ -18,12 +20,34 @@ public class userContext extends abstractConnect implements userDao {
 
     @Override
     public Collection<User> findAll() {
-        return null;
+        String sql = "SELECT id, fname, lname, email, username, balance, isAdmin FROM users";
+        List<User> result = new ArrayList<>();
+
+        try {
+            PreparedStatement pstm = conn.prepareStatement(sql);
+            ResultSet res = pstm.executeQuery();
+
+            while (res.next()) {
+                User usr = new User();
+                usr.setId(res.getInt(1));
+                usr.setfName(res.getString(2));
+                usr.setlName(res.getString(3));
+                usr.setEmail(res.getString(4));
+                usr.setUsername(res.getString(5));
+                usr.setBalance(res.getDouble(6));
+                usr.setIsAdmin(res.getInt(7));
+                result.add(usr);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return result;
     }
 
     @Override
     public User find(User item) {
-        String sql = "SELECT id, fname, lname, email, username, password FROM users WHERE username = ? AND password = ? ";
+        String sql = "SELECT id, fname, lname, email, username, password, balance, isAdmin FROM users WHERE username = ? AND password = ? ";
         User result = null;
 
         try {
@@ -40,6 +64,8 @@ public class userContext extends abstractConnect implements userDao {
                 usr.setEmail(res.getString(4));
                 usr.setUsername(res.getString(5));
                 usr.setPassword(res.getString(6));
+                usr.setBalance(res.getDouble(7));
+                usr.setIsAdmin(res.getInt(8));
                 result = usr;
             }
         } catch (SQLException e) {
@@ -75,7 +101,32 @@ public class userContext extends abstractConnect implements userDao {
 
     @Override
     public User save(User item) {
-        return null;
+        String sql = "INSERT INTO users(fname, lname, email, username, password) VALUES(?,?,?,?,?)";
+        boolean success = false;
+
+        try {
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, item.getfName());
+            pstmt.setString(2, item.getlName());
+            pstmt.setString(3, item.getEmail());
+            pstmt.setString(4, item.getUsername());
+            pstmt.setString(5, item.getPassword());
+
+            if (pstmt.executeUpdate() == 0) throw new SQLException("Insertion failed! no rows affected.");
+
+            try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                if (generatedKeys.next())
+                    item.setId(generatedKeys.getInt(1));
+                else
+                    throw new SQLException("Insertion failed! no rows affected.");
+            }
+
+            success = true;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return success ? item : null;
     }
 
     @Override
