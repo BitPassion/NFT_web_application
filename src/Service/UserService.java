@@ -41,6 +41,11 @@ public class UserService {
         return (List<User>) userRepo.findAll();
     }
 
+    /**
+     *
+     * @param username
+     * @return user dto or null if user doesn't exist
+     */
     public User findUserByUsername(String username) {
         // Sanitize input
         if (!username.isBlank()) {
@@ -113,22 +118,6 @@ public class UserService {
             if (userRepo.save(usr) != null) return true;
         }
 
-        return false;
-    }
-
-    public boolean updatePersonalInfo(String fName, String lName, String email, String username, int id) {
-        // Sanitize input
-        if (!fName.isBlank() && !lName.isBlank() && !email.isBlank() && !username.isBlank()) {
-            // Sanitize input sure the input is proper
-            User usr = new User();
-            usr.setUsername(username);
-            usr.setEmail(email);
-            usr.setfName(fName);
-            usr.setlName(lName);
-            usr.setId(id);
-
-            return userRepo.updatePersonalInfo(usr) != null;
-        }
         return false;
     }
 }
