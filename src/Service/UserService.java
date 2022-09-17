@@ -97,9 +97,9 @@ public class UserService {
         return false;
     }
 
-    public boolean registerUser(String fName, String lName, String email, String username, String password){
+    public boolean registerUser(String fName, String lName, String email, String username, String password, String secAns1, String secAns2, String secAns3){
         // Sanitize input
-        if (!fName.isBlank() && !lName.isBlank() && !email.isBlank() && !username.isBlank() && !password.isBlank()) {
+        if (!fName.isBlank() && !lName.isBlank() && !email.isBlank() && !username.isBlank() && !password.isBlank() && !secAns1.isBlank() && !secAns2.isBlank() && !secAns3.isBlank()) {
             // If user already exists, don't attempt to save new user
             if (findUserByUsername(username) != null) return false;
 
@@ -110,25 +110,16 @@ public class UserService {
             usr.setEmail(email);
             usr.setUsername(username);
             usr.setPassword(password);
+            usr.setSecAnswers(secAns1, secAns2, secAns3);
             if (userRepo.save(usr) != null) return true;
         }
 
         return false;
     }
 
-    public boolean updatePersonalInfo(String fName, String lName, String email, String username, int id) {
-        // Sanitize input
-        if (!fName.isBlank() && !lName.isBlank() && !email.isBlank() && !username.isBlank()) {
-            // Sanitize input sure the input is proper
-            User usr = new User();
-            usr.setUsername(username);
-            usr.setEmail(email);
-            usr.setfName(fName);
-            usr.setlName(lName);
-            usr.setId(id);
-
-            return userRepo.updatePersonalInfo(usr) != null;
-        }
-        return false;
+    public boolean checkSecurityAnswer(String username, int status, String answerToCheck){
+        if(username.isBlank() || answerToCheck.isBlank() || status < 0 || status > 2) return false;
+        String correctAnswer = userRepo.getSecurityAnswer(username, status);
+        return answerToCheck.equals(correctAnswer);
     }
 }
