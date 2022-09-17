@@ -15,8 +15,6 @@ import java.io.IOException;
 public class authenticateServlet extends HttpServlet {
 
     private UserService userService;
-    private int securityQuestionStatus = -1;  // -1: Start. 0: Username given. 1, 2, 3: Number of questions answered correctly.
-    private String securityQuestionUsername;  // Username given for security question challenge
 
     @Override
     public void init() {
@@ -51,10 +49,8 @@ public class authenticateServlet extends HttpServlet {
 
             // Handle login
             if (urls[0].equals("login")) handleLogin(req, resp);
-            // Handle reset (via email)
+            // Handle reset
             else if (urls[0].equals("reset")) handleReset(req, resp);
-            // Handle reset (via security questions)
-            else if (urls[0].equals("security-questions")) handleResetViaSecurityQuestions(req, resp);
             // Handle reset new password
             else if (urls[0].equals("new-password")) handleNewPassword(req, resp);
             // Handle new user registration
@@ -83,12 +79,6 @@ public class authenticateServlet extends HttpServlet {
     private void handleReset(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         User usrResponse = userService.findUserByUsername(req.getParameter("username"));
 
-        // Redirect back to login page if validation failed
-        if (usrResponse == null) {
-            resp.sendRedirect(req.getContextPath() + "/account/reset.jsp?errmsg=1");
-            return;
-        }
-
         // If username is valid then set a token for password reset
         if (usrResponse != null) {
             Token tknResponse = userService.createPasswordResetTokenForUser(req.getParameter("username"));
@@ -98,6 +88,9 @@ public class authenticateServlet extends HttpServlet {
                 System.out.println("http://localhost:8080/account/new-password.jsp?uname="+tknResponse.getUsername()+"&token="+tknResponse.getTokenValue());
             }
         }
+
+        // Redirect back to login page if validation failed
+        resp.sendRedirect(req.getContextPath() + "/account/reset.jsp?errmsg=1");
     }
 
     private void handleNewPassword(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -114,38 +107,11 @@ public class authenticateServlet extends HttpServlet {
     }
 
     private void handleRegistration(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        if(userService.registerUser(req.getParameter("fName"), req.getParameter("lName"), req.getParameter("email"),
-                req.getParameter("username"), req.getParameter("password"), req.getParameter("secAns1"),
-                req.getParameter("secAns2"), req.getParameter("secAns3"))) {
+        if(userService.registerUser(req.getParameter("fName"), req.getParameter("lName"), req.getParameter("email"), req.getParameter("username"), req.getParameter("password"))) {
             resp.sendRedirect(req.getContextPath() + "/account/signup.jsp?succsignup=1");
             return;
         }
         // Redirect back to signup page if signup failed
         resp.sendRedirect(req.getContextPath() + "/account/signup.jsp?errmsg=1");
-    }
-
-    private void handleResetViaSecurityQuestions(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-
-        if(securityQuestionStatus == -1) {
-            securityQuestionUsername = req.getParameter("username");
-            securityQuestionStatus++;
-            resp.sendRedirect(req.getContextPath() + "/account/security-questions.jsp?status=" + securityQuestionStatus);
-        } else if(securityQuestionStatus > -1 && securityQuestionStatus < 3) {
-            boolean secAnswerCorrect = userService.checkSecurityAnswer(securityQuestionUsername, securityQuestionStatus, req.getParameter("answer"));
-            if(!secAnswerCorrect){
-                resp.sendRedirect(req.getContextPath() + "/account/security-questions.jsp?status=" + securityQuestionStatus + "&errmsg=2");  // provided answer is incorrect
-            } else {
-                securityQuestionStatus++;
-                resp.sendRedirect(req.getContextPath() + "/account/security-questions.jsp?status=" + securityQuestionStatus);  // provided answer is correct
-            }
-        } else if(securityQuestionStatus == 3) {  // at this point all 3 questions have been answered correctly
-            boolean successfulReset = userService.updateUserPassword(securityQuestionUsername, req.getParameter("password"));
-            if(successfulReset) {
-                resp.sendRedirect(req.getContextPath() + "/account/security-questions.jsp?succreset=1");
-            } else {
-                resp.sendRedirect(req.getContextPath() + "/account/security-questions.jsp?errmsg=3");
-            }
-            securityQuestionStatus = -1;
-        }
     }
 }

@@ -12,8 +12,7 @@
     <div class="container-sm login-container d-flex flex-row justify-content-center">
         <form action="/authenticate/reset" method="post" class="login flex-fill">
             <fieldset>
-                <legend class="py-2">Reset Password via Email</legend>
-                <a href="./security-questions.jsp" class="px-2">Or, reset password using security questions</a>
+                <legend class="py-2">Reset Password</legend>
                 <% if (request.getParameterMap().containsKey("errmsg") && request.getParameter("errmsg").equals("1")) { %>
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     An unexpected error occurred!
