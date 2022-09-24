@@ -41,11 +41,6 @@ public class UserService {
         return (List<User>) userRepo.findAll();
     }
 
-    /**
-     *
-     * @param username
-     * @return user dto or null if user doesn't exist
-     */
     public User findUserByUsername(String username) {
         // Sanitize input
         if (!username.isBlank()) {
@@ -95,24 +90,18 @@ public class UserService {
 
             Token response = tokenRepo.find(tkn);
 
-            // if token is found then check for token expiration date
+            // if token is found then check for token expiration
             if (response != null) return response.getExpiration_date() > generateUnixTimestamp();
         }
 
         return false;
     }
 
-    public boolean registerUser(String fName, String lName, String email, String username, String password, String balance, String isAdmin){
+    public boolean registerUser(String fName, String lName, String email, String username, String password){
         // Sanitize input
         if (!fName.isBlank() && !lName.isBlank() && !email.isBlank() && !username.isBlank() && !password.isBlank()) {
             // If user already exists, don't attempt to save new user
             if (findUserByUsername(username) != null) return false;
-
-            // If balance and isAdmin is not given
-            if (balance == null || isAdmin == null) {
-                balance = "0";
-                isAdmin = "0";
-            }
 
             // Create and save new user
             User usr = new User();
@@ -121,16 +110,25 @@ public class UserService {
             usr.setEmail(email);
             usr.setUsername(username);
             usr.setPassword(password);
-            usr.setBalance(Double.parseDouble(balance));
-            usr.setIsAdmin(Integer.parseInt(isAdmin));
             if (userRepo.save(usr) != null) return true;
         }
 
         return false;
     }
 
-    public boolean registerUser(String fName, String lName, String email, String username, String password){
-        return registerUser(fName, lName, email, username, password, null, null);
-    }
+    public boolean updatePersonalInfo(String fName, String lName, String email, String username, int id) {
+        // Sanitize input
+        if (!fName.isBlank() && !lName.isBlank() && !email.isBlank() && !username.isBlank()) {
+            // Sanitize input sure the input is proper
+            User usr = new User();
+            usr.setUsername(username);
+            usr.setEmail(email);
+            usr.setfName(fName);
+            usr.setlName(lName);
+            usr.setId(id);
 
+            return userRepo.updatePersonalInfo(usr) != null;
+        }
+        return false;
+    }
 }
