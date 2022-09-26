@@ -14,8 +14,8 @@ import static Utils.DateUtils.generateUnixTimestamp;
 import static Utils.TokenUtils.generatePasswordResetToken;
 
 public class UserService {
-    private userDao userRepo;
-    private TokenDao tokenRepo;
+    private final userDao userRepo;
+    private final TokenDao tokenRepo;
 
     public UserService() {
         dataSource ds = new dataSource();
@@ -41,6 +41,11 @@ public class UserService {
         return (List<User>) userRepo.findAll();
     }
 
+    /**
+     *
+     * @param username
+     * @return user dto or null if user doesn't exist
+     */
     public User findUserByUsername(String username) {
         // Sanitize input
         if (!username.isBlank()) {
@@ -53,6 +58,12 @@ public class UserService {
         return null;
     }
 
+    /**
+     * Update user password by username
+     * @param username
+     * @param password
+     * @return
+     */
     public boolean updateUserPassword(String username, String password) {
         // Sanitize input sure the input is proper
         if (!username.isBlank() && !password.isBlank()) {
@@ -90,14 +101,27 @@ public class UserService {
 
             Token response = tokenRepo.find(tkn);
 
-            // if token is found then check for token expiration
+            // if token is found then check for token expiration date
             if (response != null) return response.getExpiration_date() > generateUnixTimestamp();
         }
 
         return false;
     }
 
-    public boolean registerUser(String fName, String lName, String email, String username, String password){
+    /**
+     * Reusable user registration method
+     * isAdmin = 0 denotes a non-admin user
+     * default balance is 300
+     * @param fName
+     * @param lName
+     * @param email
+     * @param username
+     * @param password
+     * @param balance
+     * @param isAdmin
+     * @return true or false
+     */
+    private boolean registerUser(String fName, String lName, String email, String username, String password, double balance, int isAdmin){
         // Sanitize input
         if (!fName.isBlank() && !lName.isBlank() && !email.isBlank() && !username.isBlank() && !password.isBlank()) {
             // If user already exists, don't attempt to save new user
@@ -110,25 +134,55 @@ public class UserService {
             usr.setEmail(email);
             usr.setUsername(username);
             usr.setPassword(password);
-            if (userRepo.save(usr) != null) return true;
+            usr.setBalance(balance);
+            usr.setIsAdmin(isAdmin);
+
+            return userRepo.save(usr) != null;
         }
 
         return false;
     }
 
-    public boolean updatePersonalInfo(String fName, String lName, String email, String username, int id) {
+    public boolean registerUser(String fName, String lName, String email, String username, String password){
+        return registerUser(fName, lName, email, username, password, 0, 0);
+    }
+
+    public boolean registerUser(String fName, String lName, String email, String username, String password, String isAdmin) {
+        double balance = 300;
+        int isAdminInt = Integer.parseInt(isAdmin);
+        return registerUser(fName, lName, email, username, password, balance, isAdminInt);
+    }
+
+    public boolean deleteUserById(String id) {
         // Sanitize input
-        if (!fName.isBlank() && !lName.isBlank() && !email.isBlank() && !username.isBlank()) {
-            // Sanitize input sure the input is proper
+        if(!id.isBlank()) {
             User usr = new User();
-            usr.setUsername(username);
-            usr.setEmail(email);
+            usr.setId(Integer.parseInt(id));
+            return userRepo.delete(usr) != null;
+        }
+
+        return false;
+    }
+
+    public boolean updateUserById(String id, String fName, String lName, String email, String username, String password, String isAdmin) {
+        // Sanitize input
+        if (!id.isBlank() && !fName.isBlank() && !lName.isBlank() && !email.isBlank() && !username.isBlank() && !isAdmin.isBlank()) {
+            User usr = new User();
+            usr.setId(Integer.parseInt(id));
             usr.setfName(fName);
             usr.setlName(lName);
-            usr.setId(id);
+            usr.setEmail(email);
+            usr.setUsername(username);
+            usr.setIsAdmin(Integer.parseInt(isAdmin));
+            usr = userRepo.update(usr); // if unsuccessful returns null
 
-            return userRepo.updatePersonalInfo(usr) != null;
+            // !password may not always be updated
+            if(!password.isBlank() && usr != null) return updateUserPassword(usr.getUsername(), password);
+
+            return usr != null;
         }
+
         return false;
     }
+
 }
