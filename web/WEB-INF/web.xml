@@ -17,12 +17,8 @@
         <servlet-class>Controller.dashboardServlet</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>userServlet</servlet-name>
-        <servlet-class>Controller.userServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>adminServlet</servlet-name>
-        <servlet-class>Controller.adminServlet</servlet-class>
+        <servlet-name>profileServlet</servlet-name>
+        <servlet-class>Controller.profileServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
@@ -34,11 +30,7 @@
         <url-pattern>/dashboard/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>userServlet</servlet-name>
-        <url-pattern>/user/*</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>adminServlet</servlet-name>
-        <url-pattern>/admin/*</url-pattern>
+        <servlet-name>profileServlet</servlet-name>
+        <url-pattern>/profile/*</url-pattern>
     </servlet-mapping>
 </web-app>
