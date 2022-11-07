@@ -67,6 +67,8 @@ public class userContext extends abstractConnect implements userDao {
                 usr.setIsAdmin(res.getInt(8));
                 result = usr;
             }
+
+            pstm.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
@@ -190,7 +192,6 @@ public class userContext extends abstractConnect implements userDao {
 
             if (pstm.executeUpdate() == 0) throw new SQLException("Delete failed! no rows affected.");
 
-
             success = true;
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -253,4 +254,5 @@ public class userContext extends abstractConnect implements userDao {
 
         return null;
     }
+
 }
